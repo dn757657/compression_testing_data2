@@ -1,8 +1,4 @@
 from models.base import Base
-import models.samples
-import models.acquisition_settings
-import models.testing
-import models.reconstruction_settings
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
