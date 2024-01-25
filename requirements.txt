@@ -1,2 +1,3 @@
 sqlalchemy
 psycopg2
+git+https://https://github.com/dn757657/compression_testing_data2@main#compression_testing_data2
