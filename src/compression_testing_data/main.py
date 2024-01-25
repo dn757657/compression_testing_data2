@@ -2,7 +2,7 @@ import sqlalchemy.orm
 import logging
 
 from models.reconstruction_settings import ProcessingModels
-from src.models.acquisition_settings import AcquisitionModels
+from src.compression_testing_data.models.acquisition_settings import AcquisitionModels
 from models.testing import CompressionTrial
 from meta import Session
 
