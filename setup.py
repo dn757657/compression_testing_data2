@@ -7,11 +7,12 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="compression_testing_data2",  # Required
-    version="1.1.1",  # Required
+    version="1.1.2",  # Required
     description="SQL backend for compression testing",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)
     url="https://github.com/dn757657/compression_testing_data2",  # Optional
-    packages=find_packages(),  # Required
+    packages=find_packages(where='src'),  # Required
+    package_dir={"": "src"},
     python_requires=">=3.8, <4",
 )
