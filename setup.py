@@ -12,8 +12,6 @@ setup(
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional (see note above)
     url="https://github.com/dn757657/compression_testing_data2",  # Optional
-    package_dir={"": "src"},
-    packages=find_packages(where="src"),  # Required
-    py_modules=['main', "meta"],
+    packages=find_packages(),  # Required
     python_requires=">=3.8, <4",
 )
