@@ -1,10 +1,10 @@
 import sqlalchemy.orm
 import logging
 
-from models.reconstruction_settings import ProcessingModels
-from src.compression_testing_data.models.acquisition_settings import AcquisitionModels
-from models.testing import CompressionTrial
-from meta import Session
+from .models.reconstruction_settings import ProcessingModels
+from .models.acquisition_settings import AcquisitionModels
+from .models.testing import CompressionTrial
+from .meta import Session
 
 BASE_DIR = ""
 logging.basicConfig()
