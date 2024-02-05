@@ -24,9 +24,13 @@ def parse_sql_gphoto_config_for_gphoto(camera_setting: sqlalchemy.orm.Query):
                          if getattr(camera_setting, column.name) is not None}
 
         # Convert to the desired list format
-        settings_list = [f"{key}={value}" for key, value in settings_dict.items()
-                         if key != 'id' and key != 'created_at']  # Exclude the 'id' column
+        settings_list = parse_cam_config_dict_for_gphoto(dict_config=settings_dict)
+    return settings_list
 
+
+def parse_cam_config_dict_for_gphoto(dict_config: dict()):
+    settings_list = [f"{key}={value}" for key, value in settings_dict.items()
+                    if key != 'id' and key != 'created_at']  # Exclude the 'id' column
     return settings_list
 
 
