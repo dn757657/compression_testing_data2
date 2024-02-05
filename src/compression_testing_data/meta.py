@@ -21,4 +21,5 @@ try:
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
 except OperationalError:
+    Session = None
     logging.info("Could not connect to DB!")

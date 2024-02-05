@@ -32,19 +32,18 @@ def parse_sql_gphoto_config_for_gphoto(camera_setting: sqlalchemy.orm.Query):
 
 def parse_gphoto_config_for_sql(config_output):
     settings = {}
-    lines = config_output.split("\\n")
-    current_setting = None
     is_readonly = False
 
-    for line in lines:
-        if line.startswith("/main"):
-            current_setting = line.split(" : ")[0].split("/")[-1]
-            is_readonly = False  # Reset readonly flag for new setting
-        elif 'Readonly: 1' in line:
-            is_readonly = True
-        elif line.strip().startswith("Current:") and not is_readonly:
-            current_value = line.split(":")[1].strip()
-            settings[current_setting] = current_value
+    for setting, value in config_output.items():
+        setting_name = setting.split("/")[-1]
+
+        lines = value.split("\n")
+        for line in lines:
+            if 'Readonly: 1' in line:
+                is_readonly = True
+            elif line.strip().startswith("Current:") and not is_readonly:
+                current_value = line.split(":")[1].strip()
+                settings[setting_name] = current_value
 
     return settings
 
