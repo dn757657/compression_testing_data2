@@ -13,13 +13,21 @@ class CompressionTrial(Base):
 
     frames_per_step_target = Column(Integer, nullable=False, default=100)
     strain_delta_target = Column(Float, nullable=False, default=0.1)  # engineering strain
-    force_limit = Column(Float, nullable=False, default=1000)  # newtons
     strain_limit = Column(Float, nullable=False, default=0.2)  # 4mm
 
-    sample_id = Column(Integer, ForeignKey('Samples.id'))
+    force_limit = Column(Float, nullable=False, default=1000)
+    force_zero = Column(Float, nullable=False, default=0)
+    force_unit = Column(String(5), nullable=False, default='N')
+
+    sample_id = Column(Integer, ForeignKey('Samples.id', ondelete="CASCADE"))
     sample = relationship('Sample', back_populates='trials')
 
-    steps = relationship('CompressionStep', back_populates='compression_trial')
+    steps = relationship(
+        'CompressionStep',
+        back_populates='compression_trial',
+        cascade="all, delete",
+        passive_deletes=True
+    )
 
 
 class CompressionStep(Base):
@@ -29,17 +37,22 @@ class CompressionStep(Base):
     name = Column(String, unique=True, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
+    # height can be derived from any choice of strain encoder or strain cam
     strain_target = Column(Float, nullable=False)
-    # strain_encoder - motor rotations
-    # strain_cam - dist between platons
-    # min_strain
-    force = Column(Float, nullable=False)
-    # max_force (do not want to exceed a given amount)
+    strain_encoder = Column(Float)
+    strain_stl = Column(Float)
 
-    compression_trial_id = Column(Integer, ForeignKey('Compression_Trials.id'))
+    force = Column(Float)
+
+    compression_trial_id = Column(Integer, ForeignKey('Compression_Trials.id', ondelete="CASCADE"))
     compression_trial = relationship('CompressionTrial', back_populates='steps')
 
-    frames = relationship('Frame', back_populates='compression_step')
+    frames = relationship(
+        'Frame',
+        back_populates='compression_step',
+        cascade="all, delete",
+        passive_deletes=True
+    )
 
 
 class Frame(Base):
@@ -52,10 +65,10 @@ class Frame(Base):
     file_extension = Column(String)
     filepath = Column(String)
 
-    camera_setting_id = Column(Integer, ForeignKey('Camera_Settings.id'))
+    camera_setting_id = Column(Integer, ForeignKey('Camera_Settings.id', ondelete="CASCADE"))
     camera_setting = relationship('CameraSetting', back_populates='frames')
 
-    compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id'))
+    compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id', ondelete="CASCADE"))
     compression_step = relationship('CompressionStep', back_populates='frames')
 
     __table_args__ = (

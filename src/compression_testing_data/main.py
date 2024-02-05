@@ -1,9 +1,13 @@
 import sqlalchemy.orm
 import logging
+import uuid
+
+from sqlalchemy import select
 
 from .models.reconstruction_settings import ProcessingModels
 from .models.acquisition_settings import AcquisitionModels
-from .models.testing import CompressionTrial
+from .models.samples import Print, Sample
+from .models.testing import CompressionTrial, CompressionStep
 from .meta import Session
 
 BASE_DIR = ""
@@ -28,7 +32,7 @@ def parse_sql_gphoto_config_for_gphoto(camera_setting: sqlalchemy.orm.Query):
 
 def parse_gphoto_config_for_sql(config_output):
     settings = {}
-    lines = config_output.split("\n")
+    lines = config_output.split("\\n")
     current_setting = None
     is_readonly = False
 
@@ -44,6 +48,65 @@ def parse_gphoto_config_for_sql(config_output):
 
     return settings
 
+
+def add_steps(
+        session: Session,
+        trial_id,
+):
+    stmt = select(CompressionTrial).where(CompressionTrial.id == trial_id)
+    slct = session.execute(stmt)
+
+    trials = slct.scalars().all()
+    if len(trials) > 1:
+        logging.info("found too many trials")
+        return
+    else:
+        trial = trials[0]
+
+    strain = 1
+    while strain > trial.strain_limit:
+        new_step = CompressionStep()
+
+        step_name = uuid.uuid4()
+
+        new_step.name = step_name
+        new_step.strain_target = strain
+        new_step.compression_trial_id = trial_id
+
+        session.add(new_step)
+        print(f"{step_name}: {strain}")
+
+        strain -= trial.strain_delta_target
+
+    return session
+
+
+def test_trial():
+    session = Session()
+
+    # clear tables to simulate starting from scratch
+    models = [Print, Sample, CompressionTrial]
+    for model in models:
+        session.query(model).delete()
+    session.commit()
+
+    session = add_test_print(session=session)
+    session.commit()
+    print_id = session.query(Print).first().id
+
+    session = add_test_sample(session=session, print_id=print_id)
+    session.commit()
+    sample_id = session.query(Sample).first().id
+
+    session = add_test_trial(session=session, sample_id=sample_id)
+    session.commit()
+
+    trial_id = session.query(CompressionTrial).first().id
+    session = add_steps(session=session, trial_id=trial_id)
+    session.commit()
+
+    session.close()
+    pass
 
 def gen_input_jsons(models):
     """
@@ -80,47 +143,43 @@ def gen_input_jsons(models):
     pass
 
 
-def run_trial():
-    # initialization phase
+def add_test_print(session: Session):
+    """
+    only define non default entries for testing
+    :param session:
+    :return:
+    """
+    session.add(Print(
+        name='new_print',
+        filament_name='VarioShore',
+        printer_model='Mk3s+',
+        printer_settings_file='some_settings.ini',
+        stl_file='my.stl'
+    ))
+    return session
 
-    return
+
+def add_test_sample(session: Session, print_id: int):
+    """
+    only define non default entries for testing
+    :param session:
+    :return:
+    """
+    session.add(Sample(
+        print_id=print_id
+    ))
+    return session
+
+
+def add_test_trial(session: Session, sample_id: int):
+    session.add(CompressionTrial(
+        sample_id=sample_id
+    ))
+    return session
 
 
 def main():
-
-    # TODO when generating new trial
-    #   check for all possible entries in foreign keys for trial or object settings
-    #   since the camera table is not required to be a unique set of settings there
-    #   will be perhaps duplicate sets, therefore a trial coulx exist
-    #   - or does this not apply since frames cant be remade, frames from a trial are what they are
-    #   - the sample is gone, and woudl require a new trial to replicate - sorta
-
-    # TODO when entering a new entry in the database ensure that the file exists per the base directory
-    #  file make sure it exists - might be a pain if strictly enforced but might save headache?
-
-    session = Session()
-    # session.add(Print(
-    #     name='new_print',
-    #     filament_name='VarioShore',
-    #     printer_model='Mk3s+',
-    #     printer_settings_file='some_settings.ini',
-    #     stl_file='my.stl'
-    # ))
-    # session.commit()
-    #
-    # session.add(Sample(
-    #     height=19.5,
-    #     print_id=1
-    # ))
-    # session.commit()
-
-    session.add(CompressionTrial(
-        sample_id=1
-    ))
-    session.commit()
-
-    gen_input_jsons(models=AcquisitionModels + ProcessingModels)
-
+    pass
 
 if __name__ == '__main__':
     main()

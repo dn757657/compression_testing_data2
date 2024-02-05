@@ -86,7 +86,12 @@ class CameraSetting(Base):
     alomode = Column(String)
     d406 = Column(String)
 
-    frames = relationship('Frame', back_populates='camera_setting')
+    frames = relationship(
+        'Frame',
+        back_populates='camera_setting',
+        cascade="all, delete",
+        passive_deletes=True
+    )
 
 
 class PlatonDimension(Base):

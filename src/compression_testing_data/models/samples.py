@@ -7,14 +7,19 @@ from .base import Base
 
 
 class Sample(Base):
+    """
+    non-nullable are required by user when entering
+    """
     __tablename__ = "Samples"
 
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-    # geometric
-    height = Column(Float)
-    units = Column(String, nullable=False, default='mm')
+    # geometric - derived from first step in trial
+    # technically dont need these here but its convenient
+    height_enc = Column(Float)
+    height_stl = Column(Float)
+    geometry_units = Column(String, nullable=False, default='mm')
 
     # infill
     cell_size = Column(Float, nullable=False, default=1)
@@ -23,13 +28,18 @@ class Sample(Base):
     # other
     n_perimeters = Column(Integer, nullable=False, default=1)
 
-    print_id = Column(Integer, ForeignKey('Prints.id'))
+    print_id = Column(Integer, ForeignKey('Prints.id', ondelete="CASCADE"))
     print = relationship('Print', back_populates='samples')
 
     # infill_pattern_id = Column(Integer, ForeignKey('Infill_Patterns.id'))
     # infill_pattern = relationship('InfillPattern', back_populates='samples')
 
-    trials = relationship('CompressionTrial', back_populates='sample')
+    trials = relationship(
+        'CompressionTrial',
+        back_populates='sample',
+        cascade="all, delete",
+        passive_deletes=True
+    )
 
     __table_args__ = (
         CheckConstraint('relative_density BETWEEN 0 AND 1', name='relative_density_range_value_check'),
@@ -71,7 +81,12 @@ class Print(Base):
     printer_settings_file = Column(String, nullable=False)
     stl_file = Column(String, nullable=False, unique=True)
 
-    samples = relationship('Sample', back_populates='print')
+    samples = relationship(
+        'Sample',
+        back_populates='print',
+        cascade="all, delete",
+        passive_deletes=True
+    )
 
 
 SampleModels = [cls for cls in Base.__subclasses__()]
