@@ -13,13 +13,15 @@ from .models.testing import *
 logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
 
-
-conn_str = 'postgresql://myuser:mypassword@localhost:5432/compression_testing'
+# local
+# conn_str = 'postgresql://myuser:mypassword@localhost:5432/compression_testing'
+# external
+conn_str = 'postgresql://myuser:mypassword@134.190.197.31:5432/compression_testing'
 try:
     engine = create_engine(conn_str)
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
 except OperationalError:
-    Session = None
+    Session = None  
     logging.info("Could not connect to DB!")

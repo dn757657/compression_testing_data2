@@ -29,7 +29,7 @@ def parse_sql_gphoto_config_for_gphoto(camera_setting: sqlalchemy.orm.Query):
 
 
 def parse_cam_config_dict_for_gphoto(dict_config: dict()):
-    settings_list = [f"{key}={value}" for key, value in settings_dict.items()
+    settings_list = [f"{key}={value}" for key, value in dict_config.items()
                     if key != 'id' and key != 'created_at']  # Exclude the 'id' column
     return settings_list
 
@@ -39,6 +39,8 @@ def parse_gphoto_config_for_sql(config_output):
     is_readonly = False
 
     for setting, value in config_output.items():
+        print(f"Setting: {setting}, Value{value}")
+
         setting_name = setting.split("/")[-1]
 
         lines = value.split("\n")
@@ -48,6 +50,7 @@ def parse_gphoto_config_for_sql(config_output):
             elif line.strip().startswith("Current:") and not is_readonly:
                 current_value = line.split(":")[1].strip()
                 settings[setting_name] = current_value
+                print(f"Result: {setting_name}: {current_value}")
 
     return settings
 
