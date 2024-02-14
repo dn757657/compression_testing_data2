@@ -15,7 +15,7 @@ class CompressionTrial(Base):
     strain_delta_target = Column(Float, nullable=False, default=0.1)  # engineering strain
     strain_limit = Column(Float, nullable=False, default=0.2)  # 4mm
 
-    force_limit = Column(Float, nullable=False, default=1000)
+    force_ = Column(Float, nullable=False, default=1000)
     force_zero = Column(Float, nullable=False, default=0)
     force_unit = Column(String(5), nullable=False, default='N')
 
@@ -40,7 +40,7 @@ class CompressionStep(Base):
     # height can be derived from any choice of strain encoder or strain cam
     strain_target = Column(Float, nullable=False)
     strain_encoder = Column(Float)
-    strain_stl = Column(Float)
+    # strain_stl = Column(Float)
 
     force = Column(Float)
 
