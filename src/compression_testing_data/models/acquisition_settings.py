@@ -17,8 +17,8 @@ class CameraSetting(Base):
     iso = Column(String)
     focusmode = Column(String) # 0 = one shot
     aspectratio = Column(Integer)  # 0 native aspect is best
-    aperture = Column(Float)
-    shutterspeed = Column(Float)
+    aperture = Column(Integer)
+    shutterspeed = Column(Integer)
 
     frames = relationship(
         'Frame',

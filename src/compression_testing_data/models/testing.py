@@ -13,9 +13,9 @@ class CompressionTrial(Base):
 
     frames_per_step_target = Column(Integer, nullable=False, default=100)
     strain_delta_target = Column(Float, nullable=False, default=0.1)  # engineering strain
-    strain_limit = Column(Float, nullable=False, default=0.2)  # 4mm
+    strain_limit = Column(Float, nullable=False, default=0.8)  # 4mm
 
-    force_ = Column(Float, nullable=False, default=1000)
+    force_limit = Column(Float, nullable=False, default=1000)
     force_zero = Column(Float, nullable=False, default=0)
     force_unit = Column(String(5), nullable=False, default='N')
 
@@ -63,6 +63,7 @@ class Frame(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     file_extension = Column(String)
+    file_name = Column(String)
     filepath = Column(String)
 
     camera_setting_id = Column(Integer, ForeignKey('Camera_Settings.id', ondelete="CASCADE"))
