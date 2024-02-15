@@ -18,7 +18,7 @@ class Sample(Base):
     # geometric - derived from first step in trial
     # technically dont need these here but its convenient
     height_enc = Column(Float)
-    height_stl = Column(Float)
+    height_stl = Column(Float)  # not in use
     geometry_units = Column(String, nullable=False, default='mm')
 
     # infill

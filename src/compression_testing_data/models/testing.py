@@ -9,6 +9,7 @@ class CompressionTrial(Base):
     __tablename__ = 'Compression_Trials'
 
     id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     frames_per_step_target = Column(Integer, nullable=False, default=100)
