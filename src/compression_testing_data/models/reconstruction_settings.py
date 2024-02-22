@@ -1,4 +1,5 @@
 import datetime
+from sqlalchemy.orm import relationship
 
 from sqlalchemy import Column, Integer, Float, DateTime, UniqueConstraint, \
     Boolean, CheckConstraint, String
@@ -14,6 +15,13 @@ class MetashapePlyGenerationSetting(Base):
     image_alignment_accuracy = Column(Integer, default=1)
     depth_map_quality = Column(Integer, default=2)
     filter_mode = Column(Integer, default=0)
+
+    full_point_clouds = relationship(
+        'FullPointCloud',
+        back_populates='metashape_ply_generation_setting',
+        cascade="all, delete",
+        passive_deletes=True
+    )
 
     __table_args__ = (
         UniqueConstraint(
@@ -41,6 +49,13 @@ class MetashapePlyExportSetting(Base):
     save_point_source_id = Column(Boolean, default=True)
     save_point_timestamp = Column(Boolean, default=True)
     save_point_index = Column(Boolean, default=True)
+
+    full_point_clouds = relationship(
+        'FullPointCloud',
+        back_populates='metashape_ply_export_setting',
+        cascade="all, delete",
+        passive_deletes=True
+    )
 
     __table_args__ = (
         UniqueConstraint(
@@ -70,6 +85,13 @@ class Open3DSegmentationSetting(Base):
     ransac_n = Column(Integer, default=3)
     num_iterations = Column(Integer, default=1000)
 
+    processed_point_clouds = relationship(
+        'ProcessedPointCloud',
+        back_populates='open3d_segmentation_setting',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
     __table_args__ = (
         UniqueConstraint(
             'plane_limit',
@@ -81,27 +103,61 @@ class Open3DSegmentationSetting(Base):
     )
 
 
+class MetashapeBuildModelSetting(Base):
+    __tablename__ = 'Metashape_Build_Model_Settings'
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    surface_type = Column(Integer, default=0)
+    interpolation = Column(Float, default=1)
+    face_count = Column(Integer, default=2)
+    source_data = Column(Integer, default=0)
+
+    stls = relationship(
+        'ProcessedSTL',
+        back_populates='metahsape_build_model_setting',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            'surface_type',
+            'interpolation',
+            'face_count',
+            'source_data',
+            name=f'uix_{__tablename__}'
+        ),
+    )
+
+
 class ColorDefinition(Base):
     __tablename__ = 'Color_Definitions'
 
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-    red = Column(Integer)
-    green = Column(Integer)
-    blue = Column(Integer)
+    red_mean_val = Column(Float)
+    green_mean_val = Column(Float)
+    blue_mean_val = Column(Float)
+
+    red_mean_stdv = Column(Float)
+    green_mean_stdv = Column(Float)
+    blue_mean_stdv = Column(Float)
+
     standard_dev_range = Column(Integer)
     color = Column(String(20))
 
     __table_args__ = (
-        CheckConstraint('red BETWEEN 0 AND 255', name='red_range_value_check'),
-        CheckConstraint('green BETWEEN 0 AND 255', name='green_range_value_check'),
-        CheckConstraint('blue BETWEEN 0 AND 255', name='blue_range_value_check'),
+        CheckConstraint('red_mean_val BETWEEN 0 AND 255', name='red_range_value_check'),
+        CheckConstraint('green_mean_val BETWEEN 0 AND 255', name='green_range_value_check'),
+        CheckConstraint('blue_mean_val BETWEEN 0 AND 255', name='blue_range_value_check'),
         CheckConstraint('standard_dev_range BETWEEN 0 AND 5', name='stdev_range_value_check'),
         UniqueConstraint(
-            'red',
-            'green',
-            'blue',
+            'red_mean_val',
+            'green_mean_val',
+            'blue_mean_val',
             'color',
             name=f'uix_{__tablename__}'
         ),
@@ -117,6 +173,13 @@ class Open3DDBSCANClusteringSetting(Base):
     eps = Column(Float, default=0.05)
     min_points = Column(Integer, default=1000)
 
+    processed_point_clouds = relationship(
+        'ProcessedPointCloud',
+        back_populates='open3d_dbscan_clustering_setting',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
     __table_args__ = (
         UniqueConstraint(
             'eps',
@@ -126,5 +189,11 @@ class Open3DDBSCANClusteringSetting(Base):
     )
 
 
-ProcessingModels = [cls for cls in Base.__subclasses__()]
+ProcessingModels = [
+    MetashapePlyGenerationSetting,
+    MetashapePlyExportSetting,
+    Open3DDBSCANClusteringSetting,
+    Open3DSegmentationSetting,
+    ColorDefinition,    
+]
 

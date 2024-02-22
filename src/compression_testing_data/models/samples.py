@@ -18,7 +18,7 @@ class Sample(Base):
     # geometric - derived from first step in trial
     # technically dont need these here but its convenient
     height_enc = Column(Float)
-    height_stl = Column(Float)  # not in use
+    #height_stl = Column(Float)  # not in use
     geometry_units = Column(String, nullable=False, default='mm')
 
     # infill
@@ -44,6 +44,27 @@ class Sample(Base):
     __table_args__ = (
         CheckConstraint('relative_density BETWEEN 0 AND 1', name='relative_density_range_value_check'),
     )
+
+class Phantom(Base):
+    """
+    non-nullable are required by user when entering
+    """
+    __tablename__ = "Phantoms"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    name = Column(String, unique=True, default='cylinder')
+    
+    volume = Column(Float)
+    geometry_units = Column(String, nullable=False, default='mm')
+
+    trials = relationship(
+        'CompressionTrial',
+        back_populates='phantom',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
 
 
 # class InfillPattern(Base):

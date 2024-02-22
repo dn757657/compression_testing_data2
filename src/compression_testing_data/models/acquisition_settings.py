@@ -11,14 +11,14 @@ class CameraSetting(Base):
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-    autopoweroff = Column(String)
-    capture = Column(String)
-    imageformat = Column(String)  # 21 = raw
-    iso = Column(String)
-    focusmode = Column(String) # 0 = one shot
-    aspectratio = Column(Integer)  # 0 native aspect is best
-    aperture = Column(Integer)
-    shutterspeed = Column(Integer)
+    autopoweroff = Column(String, default='0')
+    capture = Column(String, default='0')
+    imageformat = Column(String, default='0')  # 21 = raw
+    iso = Column(String, default='10')
+    focusmode = Column(String, default='0') # 0 = one shot
+    aspectratio = Column(Integer, default=0)  # 0 native aspect is best
+    aperture = Column(Integer, default=4)
+    shutterspeed = Column(Integer, default=37)
 
     frames = relationship(
         'Frame',
@@ -38,6 +38,13 @@ class PlatonDimension(Base):
     dim2 = Column(Float, default=40, nullable=False)
     dim3 = Column(Float, default=40, nullable=False)
     dim4 = Column(Float, default=40, nullable=False)
+
+    processed_point_clouds = relationship(
+        'ProcessedPointCloud',
+        back_populates='platon_dimension',
+        cascade="all, delete",
+        passive_deletes=True
+    )
 
     __table_args__ = (
         UniqueConstraint(

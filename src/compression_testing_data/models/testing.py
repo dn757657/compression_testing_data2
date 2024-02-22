@@ -1,7 +1,7 @@
 import datetime
 
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, CheckConstraint, DateTime
+from sqlalchemy import Column, UniqueConstraint, Boolean, Integer, String, Float, ForeignKey, CheckConstraint, DateTime
 from .base import Base
 
 
@@ -20,8 +20,13 @@ class CompressionTrial(Base):
     force_zero = Column(Float, nullable=False, default=0)
     force_unit = Column(String(5), nullable=False, default='N')
 
+    #is_calibration = Column(Boolean, nullable=False, default=False)
+
     sample_id = Column(Integer, ForeignKey('Samples.id', ondelete="CASCADE"))
     sample = relationship('Sample', back_populates='trials')
+
+    phantom_id = Column(Integer, ForeignKey('Phantoms.id', ondelete="CASCADE"))
+    phantom = relationship('Phantom', back_populates='trials')
 
     steps = relationship(
         'CompressionStep',
@@ -29,6 +34,15 @@ class CompressionTrial(Base):
         cascade="all, delete",
         passive_deletes=True
     )
+
+    __table_args__ = (
+        CheckConstraint(
+            '(sample_id IS NOT NULL AND phantom_id IS NULL) OR '
+            '(sample_id IS NULL AND phantom_id IS NOT NULL)',
+            name='check_only_one_sample'
+        ),
+    )
+
 
 
 class CompressionStep(Base):
@@ -55,6 +69,34 @@ class CompressionStep(Base):
         passive_deletes=True
     )
 
+    metashape_projects = relationship(
+        'MetashapeProject',
+        back_populates='compression_step',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
+    full_point_clouds = relationship(
+        'FullPointCloud',
+        back_populates='compression_step',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
+    processed_point_clouds = relationship(
+        'ProcessedPointCloud',
+        back_populates='compression_step',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
+    stls = relationship(
+        'ProcessedSTL',
+        back_populates='compression_step',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
 
 class Frame(Base):
     __tablename__ = 'Frames'
@@ -65,7 +107,7 @@ class Frame(Base):
 
     file_extension = Column(String)
     file_name = Column(String)
-    filepath = Column(String)
+    # filepath = Column(String)
 
     camera_setting_id = Column(Integer, ForeignKey('Camera_Settings.id', ondelete="CASCADE"))
     camera_setting = relationship('CameraSetting', back_populates='frames')
@@ -79,6 +121,120 @@ class Frame(Base):
             'exr', 'tga', 'bpm', 'ppm', 'dng', 'mpo', 'seq', 'ara'
         ])),
     )
+
+
+class MetashapeProject(Base):
+    __tablename__ = 'Metashape_Projects'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    file_extension = Column(String)
+    file_name = Column(String)
+    # filepath = Column(String)
+
+    # step also links to frames
+    compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id', ondelete="CASCADE"))
+    compression_step = relationship('CompressionStep', back_populates='metashape_projects')
+
+    __table_args__ = (
+        CheckConstraint(file_extension.in_(['psx'])),
+    )
+
+
+class FullPointCloud(Base):
+    __tablename__ = 'Full_Point_Clouds'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    file_extension = Column(String)
+    file_name = Column(String)
+    # filepath = Column(String)
+
+    # step also links to frames
+    compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id', ondelete="CASCADE"))
+    compression_step = relationship('CompressionStep', back_populates='full_point_clouds')
+
+    metashape_ply_export_setting_id = Column(Integer, ForeignKey('Metashape_PLY_Export_Settings.id', ondelete="CASCADE"))
+    metashape_ply_export_setting = relationship('MetashapePlyExportSetting', back_populates='full_point_clouds')
+
+    metashape_ply_generation_setting_id = Column(Integer, ForeignKey('Metashape_PLY_Generation_Settings.id', ondelete="CASCADE"))
+    metashape_ply_generation_setting = relationship('MetashapePlyGenerationSetting', back_populates='full_point_clouds')
+
+    __table_args__ = (
+        CheckConstraint(file_extension.in_(['ply'])),
+        UniqueConstraint(
+            'compression_step_id',
+            'metashape_ply_export_setting_id',
+            'metashape_ply_generation_setting_id',
+            name=f'uix_{__tablename__}'
+        ),
+    )
+
+
+class ProcessedPointCloud(Base):
+    __tablename__ = 'Processed_Point_Clouds'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    file_extension = Column(String)
+    file_name = Column(String)
+    # filepath = Column(String)
+
+    scaling_factor = Column(Float, default=0)
+
+    # step also links to frames
+    compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id', ondelete="CASCADE"))
+    compression_step = relationship('CompressionStep', back_populates='processed_point_clouds')
+
+    # open3d options!
+    open3d_segmentation_setting_id = Column(Integer, ForeignKey('Open3D_Segmentation_Settings.id', ondelete="CASCADE"))
+    open3d_segmentation_setting = relationship('Open3DSegmentationSetting', back_populates='processed_point_clouds')
+
+    open3d_dbscan_clustering_setting_id = Column(Integer, ForeignKey('Open3D_DBSCAN_Clustering_Settings.id', ondelete="CASCADE"))
+    open3d_dbscan_clustering_setting = relationship('Open3DDBSCANClusteringSetting', back_populates='processed_point_clouds')
+
+    platon_dimension_id = Column(Integer, ForeignKey('Platon_Dimensions.id', ondelete="CASCADE"))
+    platon_dimension = relationship('PlatonDimension', back_populates='processed_point_clouds')
+
+    __table_args__ = (
+        CheckConstraint(file_extension.in_(['ply'])),
+        UniqueConstraint(
+            'compression_step_id',
+            'open3d_segmentation_setting_id',
+            'open3d_dbscan_clustering_setting_id',
+            'platon_dimension_id',
+            name=f'uix_{__tablename__}'
+        ),
+    )
+
+
+class ProcessedSTL(Base):
+    __tablename__ = 'Processed_STLs'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    file_extension = Column(String)
+    file_name = Column(String)
+    # filepath = Column(String)
+
+    volume = Column(Float, default=0)
+    volume_unit = Column(String, default='mm3')
+
+    compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id', ondelete="CASCADE"))
+    compression_step = relationship('CompressionStep', back_populates='stls')
+
+    # step also links to frames
+    metahsape_build_model_setting_id = Column(Integer, ForeignKey('Metashape_Build_Model_Settings.id', ondelete="CASCADE"))
+    metahsape_build_model_setting = relationship('MetashapeBuildModelSetting', back_populates='stls')
+
 
 # TODO add other artifacts
 #   stls - plys - psx meta project - etc
