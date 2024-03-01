@@ -14,11 +14,11 @@ class CameraSetting(Base):
     autopoweroff = Column(String, default='0')
     capture = Column(String, default='0')
     imageformat = Column(String, default='0')  # 21 = raw
-    iso = Column(String, default='10')
+    iso = Column(String, default='13')
     focusmode = Column(String, default='0') # 0 = one shot
     aspectratio = Column(Integer, default=0)  # 0 native aspect is best
     aperture = Column(Integer, default=4)
-    shutterspeed = Column(Integer, default=37)
+    shutterspeed = Column(Integer, default=35)
 
     frames = relationship(
         'Frame',

@@ -132,6 +132,22 @@ class MetashapeBuildModelSetting(Base):
     )
 
 
+class ScalingFactor(Base):
+    __tablename__ = 'Scaling_Factors'
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    scaling_factor = Column(Float, default=1)
+
+    stls = relationship(
+        'ProcessedSTL',
+        back_populates='scaling_factor',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
+
 class ColorDefinition(Base):
     __tablename__ = 'Color_Definitions'
 
@@ -146,7 +162,7 @@ class ColorDefinition(Base):
     green_mean_stdv = Column(Float)
     blue_mean_stdv = Column(Float)
 
-    standard_dev_range = Column(Integer)
+    standard_dev_range = Column(Float)
     color = Column(String(20))
 
     __table_args__ = (

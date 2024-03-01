@@ -231,6 +231,9 @@ class ProcessedSTL(Base):
     compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id', ondelete="CASCADE"))
     compression_step = relationship('CompressionStep', back_populates='stls')
 
+    scaling_factor_id = Column(Integer, ForeignKey('Scaling_Factors.id', ondelete="CASCADE"))
+    scaling_factor = relationship('ScalingFactor', back_populates='stls')
+
     # step also links to frames
     metahsape_build_model_setting_id = Column(Integer, ForeignKey('Metashape_Build_Model_Settings.id', ondelete="CASCADE"))
     metahsape_build_model_setting = relationship('MetashapeBuildModelSetting', back_populates='stls')

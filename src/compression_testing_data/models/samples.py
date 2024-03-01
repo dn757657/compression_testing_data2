@@ -22,8 +22,8 @@ class Sample(Base):
     geometry_units = Column(String, nullable=False, default='mm')
 
     # infill
-    cell_size = Column(Float, nullable=False, default=1)
-    relative_density = Column(Float, nullable=False, default=0.5)
+    infill_pattern = Column(String, nullable=False, default='gyroid')
+    infill_density = Column(Float, nullable=False, default=0.5)
 
     # other
     n_perimeters = Column(Integer, nullable=False, default=1)
