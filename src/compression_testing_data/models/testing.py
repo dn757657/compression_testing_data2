@@ -192,6 +192,13 @@ class ProcessedPointCloud(Base):
     compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id', ondelete="CASCADE"))
     compression_step = relationship('CompressionStep', back_populates='processed_point_clouds')
 
+    stls = relationship(
+        'ProcessedSTL',
+        back_populates='processed_point_cloud',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
     # open3d options!
     open3d_segmentation_setting_id = Column(Integer, ForeignKey('Open3D_Segmentation_Settings.id', ondelete="CASCADE"))
     open3d_segmentation_setting = relationship('Open3DSegmentationSetting', back_populates='processed_point_clouds')
@@ -237,6 +244,9 @@ class ProcessedSTL(Base):
     # step also links to frames
     metahsape_build_model_setting_id = Column(Integer, ForeignKey('Metashape_Build_Model_Settings.id', ondelete="CASCADE"))
     metahsape_build_model_setting = relationship('MetashapeBuildModelSetting', back_populates='stls')
+
+    processed_point_cloud_id = Column(Integer, ForeignKey('Processed_Point_Clouds.id', ondelete="CASCADE"))
+    processed_point_cloud = relationship('ProcessedPointCloud', back_populates='stls')
 
 
 # TODO add other artifacts
