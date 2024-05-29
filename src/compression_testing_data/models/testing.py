@@ -20,7 +20,7 @@ class CompressionTrial(Base):
     force_zero = Column(Float, nullable=False, default=0)
     force_unit = Column(String(5), nullable=False, default='N')
 
-    #is_calibration = Column(Boolean, nullable=False, default=False)
+    test_set_id = Column(String)
 
     sample_id = Column(Integer, ForeignKey('Samples.id', ondelete="CASCADE"))
     sample = relationship('Sample', back_populates='trials')
@@ -90,7 +90,14 @@ class CompressionStep(Base):
         passive_deletes=True
     )
 
-    stls = relationship(
+    raw_stls = relationship(
+        'RawSTL',
+        back_populates='compression_step',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
+    processed_stls = relationship(
         'ProcessedSTL',
         back_populates='compression_step',
         cascade="all, delete",
@@ -192,8 +199,8 @@ class ProcessedPointCloud(Base):
     compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id', ondelete="CASCADE"))
     compression_step = relationship('CompressionStep', back_populates='processed_point_clouds')
 
-    stls = relationship(
-        'ProcessedSTL',
+    raw_stls = relationship(
+        'RawSTL',
         back_populates='processed_point_cloud',
         cascade="all, delete",
         passive_deletes=True
@@ -221,8 +228,8 @@ class ProcessedPointCloud(Base):
     )
 
 
-class ProcessedSTL(Base):
-    __tablename__ = 'Processed_STLs'
+class RawSTL(Base):
+    __tablename__ = 'Raw_STLs'
 
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)
@@ -236,18 +243,52 @@ class ProcessedSTL(Base):
     volume_unit = Column(String, default='mm3')
 
     compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id', ondelete="CASCADE"))
-    compression_step = relationship('CompressionStep', back_populates='stls')
+    compression_step = relationship('CompressionStep', back_populates='raw_stls')
 
     scaling_factor_id = Column(Integer, ForeignKey('Scaling_Factors.id', ondelete="CASCADE"))
-    scaling_factor = relationship('ScalingFactor', back_populates='stls')
+    scaling_factor = relationship('ScalingFactor', back_populates='raw_stls')
 
     # step also links to frames
     metahsape_build_model_setting_id = Column(Integer, ForeignKey('Metashape_Build_Model_Settings.id', ondelete="CASCADE"))
-    metahsape_build_model_setting = relationship('MetashapeBuildModelSetting', back_populates='stls')
+    metahsape_build_model_setting = relationship('MetashapeBuildModelSetting', back_populates='raw_stls')
 
     processed_point_cloud_id = Column(Integer, ForeignKey('Processed_Point_Clouds.id', ondelete="CASCADE"))
-    processed_point_cloud = relationship('ProcessedPointCloud', back_populates='stls')
+    processed_point_cloud = relationship('ProcessedPointCloud', back_populates='raw_stls')
 
+    processed_stl = relationship(
+        'ProcessedSTL',
+        back_populates='raw_stl',
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
+
+class ProcessedSTL(Base):
+    __tablename__ = 'Processed_STLs'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    file_extension = Column(String)
+    file_name = Column(String)
+
+    volume = Column(Float, default=0)
+    volume_unit = Column(String, default='mm3')
+
+    compression_step_id = Column(Integer, ForeignKey('Compression_Steps.id', ondelete="CASCADE"))
+    compression_step = relationship('CompressionStep', back_populates='processed_stls')
+
+    # we dont want more than one processed stl for each raw stl
+    raw_stl_id = Column(Integer, ForeignKey('Raw_STLs.id', ondelete="CASCADE"))
+    raw_stl = relationship('RawSTL', back_populates='processed_stl')
+
+    __table_args__ = (
+        UniqueConstraint(
+            'raw_stl_id',
+            name=f'uix_{__tablename__}'
+        ),
+    )
 
 # TODO add other artifacts
 #   stls - plys - psx meta project - etc

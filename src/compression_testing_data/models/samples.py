@@ -24,6 +24,7 @@ class Sample(Base):
     # infill
     infill_pattern = Column(String, nullable=False, default='gyroid')
     infill_density = Column(Float, nullable=False, default=0.5)
+    relative_density = Column(Float, nullable=False, default=0)
 
     # other
     n_perimeters = Column(Integer, nullable=False, default=1)

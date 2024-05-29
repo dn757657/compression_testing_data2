@@ -114,8 +114,8 @@ class MetashapeBuildModelSetting(Base):
     face_count = Column(Integer, default=2)
     source_data = Column(Integer, default=0)
 
-    stls = relationship(
-        'ProcessedSTL',
+    raw_stls = relationship(
+        'RawSTL',
         back_populates='metahsape_build_model_setting',
         cascade="all, delete",
         passive_deletes=True
@@ -140,8 +140,8 @@ class ScalingFactor(Base):
 
     scaling_factor = Column(Float, default=1)
 
-    stls = relationship(
-        'ProcessedSTL',
+    raw_stls = relationship(
+        'RawSTL',
         back_populates='scaling_factor',
         cascade="all, delete",
         passive_deletes=True
